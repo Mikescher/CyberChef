@@ -293,5 +293,63 @@ var Extract = {
         output += Extract.run_dates(input, []);
         return output;
     },
-    
+
+    /**
+     * @constant
+     * @default
+     */
+    SELECTOR_INITIAL: "",
+    /**
+     * @constant
+     * @default
+     */
+    CSS_QUERY_DELIMITER: "\\n",
+
+    /**
+     * Extract information (from an hmtl document) with an css selector
+     *
+     * @param {string} input
+     * @param {Object[]} args
+     * @returns {string}
+     */
+    run_css_query: function(input, args) {
+        var query = args[0];
+        var delimiter = args[1];
+
+        try {
+            var html = $.parseHTML(input);
+        } catch (err) {
+            return "Invalid input HTML.";
+        }
+
+        try {
+            var result = $(html).find(query);
+        } catch (err) {
+            return "Invalid CSS Selector. Details:\n" + err.message;
+        }
+
+        var output = "";
+        for (var i = 0; i < result.length; i++) {
+            if (i > 0) output +=  delimiter;
+
+            switch (result[i].nodeType) {
+                case Node.ELEMENT_NODE:
+                    output += result[i].outerHTML;
+                    break;
+                case Node.ATTRIBUTE_NODE:
+                    output += result[i].value;
+                    break;
+                case Node.TEXT_NODE:
+                    output += result[i].wholeText;
+                    break;
+                case Node.COMMENT_NODE:
+                    output += result[i].data;
+                    break;
+                default:
+                    throw new Error("Unknown Node Type: " + result[i].nodeType);
+            }
+        }
+
+        return output;
+    },
 };

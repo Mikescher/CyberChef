@@ -313,8 +313,8 @@ var Extract = {
      * @returns {string}
      */
     run_css_query: function(input, args) {
-        var query = args[0];
-        var delimiter = args[1];
+        const query = args[0];
+        const delimiter = args[1];
 
         try {
             var html = $.parseHTML(input);
@@ -328,28 +328,20 @@ var Extract = {
             return "Invalid CSS Selector. Details:\n" + err.message;
         }
 
-        var output = "";
-        for (var i = 0; i < result.length; i++) {
-            if (i > 0) output +=  delimiter;
-
-            switch (result[i].nodeType) {
-                case Node.ELEMENT_NODE:
-                    output += result[i].outerHTML;
-                    break;
-                case Node.ATTRIBUTE_NODE:
-                    output += result[i].value;
-                    break;
-                case Node.TEXT_NODE:
-                    output += result[i].wholeText;
-                    break;
-                case Node.COMMENT_NODE:
-                    output += result[i].data;
-                    break;
-                default:
-                    throw new Error("Unknown Node Type: " + result[i].nodeType);
+        const nodeToString = function(node) {
+            const { nodeType, value, wholeText, data } = node;
+            switch (nodeType) {
+                case Node.ELEMENT_NODE: return node.outerHTML;
+                case Node.ATTRIBUTE_NODE: return value;
+                case Node.COMMENT_NODE: return data;
+                case Node.TEXT_NODE: return wholeText;
+                case Node.DOCUMENT_NODE: return node.outerHTML;
+                default: throw new Error(`Unknown Node Type: ${nodeType}`);
             }
         }
 
-        return output;
+        return Object.values(result).slice(0, -1) // all values except last (length)
+            .map(nodeToString)
+            .join(delimiter);
     },
 };
